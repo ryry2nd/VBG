@@ -21,16 +21,20 @@ def update():
         player.selected = 1
     if held_keys['2']:
         player.selected = 2
+    if held_keys['3']:
+        player.selected = 3
 
 tWidth = 20
 tLength = 20
-tHeight = 3
+tHeight = 5
 
 for x in range(tWidth):
     for ty in range(tHeight):
         for z in range(tLength):
             y = floor((noise([x/freq,z/freq]))*amp)-ty
-            if ty > 0:
+            if ty > 2:
+                Stone_block((x, y, z))
+            elif ty > 0:
                 Dirt_block((x, y, z))
             else:
                 Grass_block((x, y, z))

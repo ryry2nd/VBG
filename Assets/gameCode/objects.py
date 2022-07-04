@@ -21,6 +21,8 @@ class Voxel(Button):
                         Grass_block(pos)
                     elif player.selected == 2:
                         Dirt_block(pos)
+                    elif player.selected == 3:
+                        Stone_block(pos)
                 elif key == 'left mouse down':
                     destroy(self)
 
@@ -31,6 +33,10 @@ class Grass_block(Voxel):
 class Dirt_block(Voxel):
     def __init__(self, position):
         super().__init__("Assets/textures/dirt_block.png", position)
+
+class Stone_block(Voxel):
+    def __init__(self, position):
+         super().__init__("Assets/textures/stone_block.png", position)
 
 class GameSky(Entity):
 	def __init__(self):
@@ -43,4 +49,4 @@ class GameSky(Entity):
             collision = False
             )
 
-__all__ = ["Grass_block", "Dirt_block", "GameSky"]
+__all__ = ["Grass_block", "Dirt_block", "GameSky", "Stone_block"]
