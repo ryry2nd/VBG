@@ -9,7 +9,7 @@ class Voxel(Button):
 			model = model,
 			origin_y = 0.5,
 			texture = texture,
-			color = color.white,
+            color = color.color(0, 0, random.uniform(1.9,1)),
 			scale = 0.5
         )
     def input(self, key):
@@ -34,7 +34,7 @@ class Dirt_block(Voxel):
 
 class GameSky(Entity):
 	def __init__(self):
-		super().__init__(
+    		super().__init__(
 			parent = scene,
 			model = 'sphere',
 			texture = 'Assets/textures/skybox.png',
