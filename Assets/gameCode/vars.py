@@ -5,6 +5,11 @@ class GamePlayer(FirstPersonController):
     selected = 1
 
 app = Ursina()
-player = GamePlayer()
+player = GamePlayer(position=(0, 100, 0))
 
-__all__ = ["app", "player"]
+grass_texture = load_texture("Assets/textures/grass_block.png")
+dirt_texture = load_texture("Assets/textures/dirt_block.png")
+stone_texture = load_texture("Assets/textures/stone_block.png")
+sky_texture = load_texture("Assets/textures/skybox.png")
+
+__all__ = ["app", "player", "grass_texture", "dirt_texture", "stone_texture", "sky_texture"]
