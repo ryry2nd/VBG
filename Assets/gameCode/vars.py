@@ -5,7 +5,7 @@ class GamePlayer(FirstPersonController):
     selected = 1
 
 app = Ursina()
-player = GamePlayer(position=(0, 100, 0))
+player = GamePlayer(position=(0, 100, 0), height=1, jump_height=1.5)
 
 grass_texture = load_texture("Assets/textures/grass_block.png")
 dirt_texture = load_texture("Assets/textures/dirt_block.png")

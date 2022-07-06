@@ -3,16 +3,18 @@ from ursina import *
 from Assets.gameCode.vars import *
 
 class Voxel(Button):
-    def __init__(self, texture, position, model="Assets/models/block"):
+    def __init__(self, texture, position, truePos, chunk, model="Assets/models/block"):
         super().__init__()
         self.parent = scene
         self.position = position
+        self.truePos = truePos
         self.model = model
         self.origin_y = 0.5
         self.texture = texture
         self.color = color.color(0, 0, 2)
         self.scale = 0.5
         self.highlight_color = color.white
+        self.chunk = chunk
 
     def input(self, key):
         if self.hovered:
@@ -28,26 +30,49 @@ class Voxel(Button):
                     elif player.selected == 4:
                         Bedrock_block(pos)
                 elif key == 'left mouse down':
+                    x, z, y = self.truePos
+
+                    maxX = len(self.chunk.blocks)
+                    maxZ = len(self.chunk.blocks[x])
+                    maxY = len(self.chunk.blocks[x][z])
+
+                    if x != maxX-1 and y <= len(self.chunk.blocks[x+1][z])-1 and self.chunk.blocks[x+1][z][y]!= None:
+                        self.chunk.blocks[x+1][z][y].visible = True
+                        self.chunk.blocks[x+1][z][y].enabled = True
+                    if x != 0 and y <= len(self.chunk.blocks[x-1][z])-1 and self.chunk.blocks[x-1][z][y]!= None:
+                        self.chunk.blocks[x-1][z][y].visible = True
+                        self.chunk.blocks[x-1][z][y].enabled = True
+                    if z != maxZ-1 and y <= len(self.chunk.blocks[x][z+1])-1 and self.chunk.blocks[x][z+1][y]!= None:
+                        self.chunk.blocks[x][z+1][y].visible = True
+                        self.chunk.blocks[x][z+1][y].enabled = True
+                    if z != 0 and y <= len(self.chunk.blocks[x][z-1])-1 and self.chunk.blocks[x][z-1][y]!= None:
+                        self.chunk.blocks[x][z-1][y].visible = True
+                        self.chunk.blocks[x][z-1][y].enabled = True
+                    if y != maxY-1 and self.chunk.blocks[x][z][y+1]!= None:
+                        self.chunk.blocks[x][z][y+1].visible = True
+                        self.chunk.blocks[x][z][y+1].enabled = True
+                    if y != 0 and self.chunk.blocks[x][z][y-1]!= None:
+                        self.chunk.blocks[x][z][y-1].visible = True
+                        self.chunk.blocks[x][z][y-1].enabled = True
+
+                    self.chunk.blocks[x][z][y] = None
                     destroy(self)
-    
-    def toggleHide(self):
-        self.visible = not(self.visible)
 
 class Grass_block(Voxel):
-    def __init__(self, position):
-        super().__init__(grass_texture, position)
+    def __init__(self, position, truePos, chunk):
+        super().__init__(grass_texture, position, truePos, chunk)
 
 class Dirt_block(Voxel):
-    def __init__(self, position):
-        super().__init__(dirt_texture, position)
+    def __init__(self, position, truePos, chunk):
+        super().__init__(dirt_texture, position, truePos, chunk)
 
 class Stone_block(Voxel):
-    def __init__(self, position):
-         super().__init__(stone_texture, position)
+    def __init__(self, position, truePos, chunk):
+         super().__init__(stone_texture, position, truePos, chunk)
 
 class Bedrock_block(Voxel):
-    def __init__(self, position):
-        super().__init__(bedrock_texture, position)
+    def __init__(self, position, truePos, chunk):
+        super().__init__(bedrock_texture, position, truePos, chunk)
 
 class GameSky(Entity):
 	def __init__(self):
@@ -84,13 +109,17 @@ class Chunk:
                 for y in range(maxY):
                     ry = (maxY)-y-1
                     if ry == maxY-1:
-                        self.blocks[-1][-1].append(Bedrock_block((x, y, z)))
-                    if ry > 2:
-                        self.blocks[-1][-1].append(Stone_block((x, y, z)))
+                        self.blocks[-1][-1].append(Bedrock_block((x, y, z), None, self))
+                        self.blocks[-1][-1][-1].truePos = (len(self.blocks)-1, len(self.blocks[-1])-1, len(self.blocks[-1][-1])-1)
+                    elif ry > 2:
+                        self.blocks[-1][-1].append(Stone_block((x, y, z), None, self))
+                        self.blocks[-1][-1][-1].truePos = (len(self.blocks)-1, len(self.blocks[-1])-1, len(self.blocks[-1][-1])-1)
                     elif ry > 0:
-                        self.blocks[-1][-1].append(Dirt_block((x, y, z)))
+                        self.blocks[-1][-1].append(Dirt_block((x, y, z), None, self))
+                        self.blocks[-1][-1][-1].truePos = (len(self.blocks)-1, len(self.blocks[-1])-1, len(self.blocks[-1][-1])-1)
                     else:
-                        self.blocks[-1][-1].append(Grass_block((x, y, z)))
+                        self.blocks[-1][-1].append(Grass_block((x, y, z), None, self))
+                        self.blocks[-1][-1][-1].truePos = (len(self.blocks)-1, len(self.blocks[-1])-1, len(self.blocks[-1][-1])-1)
         
     def optimize(self):
         maxX = len(self.blocks)
