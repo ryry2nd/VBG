@@ -114,30 +114,44 @@ class Chunk:
         self.generate_chunk()
         self.optimize()
 
+    def generateZAxises(self, x, zPos, trueXPos):
+        zAxises = []
+
+        for z in range(zPos, zPos+16):
+            zAxises.append([])
+            ty = round(self.noise([x/self.freq,z/self.freq])*self.amp)
+            maxY = ty+self.height
+            for y in range(maxY):
+                ry = (maxY)-y-1
+                if ry == maxY-1:
+                    zAxises[-1].append(Bedrock_block((x, y, z), None, self.blocks))
+                    zAxises[-1][-1].truePos = (trueXPos, len(zAxises)-1, len(zAxises[-1])-1)
+                elif ry > 2:
+                    zAxises[-1].append(Stone_block((x, y, z), None, self.blocks))
+                    zAxises[-1][-1].truePos = (trueXPos, len(zAxises)-1, len(zAxises[-1])-1)
+                elif ry > 0:
+                    zAxises[-1].append(Dirt_block((x, y, z), None, self.blocks))
+                    zAxises[-1][-1].truePos = (trueXPos, len(zAxises)-1, len(zAxises[-1])-1)
+                else:
+                    zAxises[-1].append(Grass_block((x, y, z), None, self.blocks))
+                    zAxises[-1][-1].truePos = (trueXPos, len(zAxises)-1, len(zAxises[-1])-1)
+        return zAxises
+
     def generate_chunk(self):
+        threads = []
+
         xPos, zPos = self.position
+        idx = 0
 
         for x in range(xPos, xPos+16):
-            self.blocks.append([])
-            for z in range(zPos, zPos+16):
-                self.blocks[-1].append([])
-                ty = round(self.noise([x/self.freq,z/self.freq])*self.amp)
-                maxY = ty+self.height
-                for y in range(maxY):
-                    ry = (maxY)-y-1
-                    if ry == maxY-1:
-                        self.blocks[-1][-1].append(Bedrock_block((x, y, z), None, self.blocks))
-                        self.blocks[-1][-1][-1].truePos = (len(self.blocks)-1, len(self.blocks[-1])-1, len(self.blocks[-1][-1])-1)
-                    elif ry > 2:
-                        self.blocks[-1][-1].append(Stone_block((x, y, z), None, self.blocks))
-                        self.blocks[-1][-1][-1].truePos = (len(self.blocks)-1, len(self.blocks[-1])-1, len(self.blocks[-1][-1])-1)
-                    elif ry > 0:
-                        self.blocks[-1][-1].append(Dirt_block((x, y, z), None, self.blocks))
-                        self.blocks[-1][-1][-1].truePos = (len(self.blocks)-1, len(self.blocks[-1])-1, len(self.blocks[-1][-1])-1)
-                    else:
-                        self.blocks[-1][-1].append(Grass_block((x, y, z), None, self.blocks))
-                        self.blocks[-1][-1][-1].truePos = (len(self.blocks)-1, len(self.blocks[-1])-1, len(self.blocks[-1][-1])-1)
+            t = ThreadWRet(target=self.generateZAxises, args=(x, zPos, idx, ))
+            threads.append(t)
+            t.start()
+            idx += 1
         
+        for thread in threads:
+            self.blocks.append(thread.join())
+
     def optimize(self):
         maxX = len(self.blocks)
         for x in range(maxX):
@@ -172,6 +186,6 @@ class Terrain:
         for x in range(1, self.tLength+1):
             self.chunks.append([])
             for z in range(1, self.tWidth+1):
-                self.chunks.append(Chunk((x*16-16, z*16-16), self.tHeight, self.noise, self.freq, self.amp))
+                self.chunks[-1].append(Chunk((x*16-16, z*16-16), self.tHeight, self.noise, self.freq, self.amp))
 
 __all__ = ["GameSky", "Terrain"]

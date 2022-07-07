@@ -1,8 +1,10 @@
 from ursina import *
 from Assets import *
 from threading import Thread
+import time
 
-t1 = Thread(target=Terrain, args=((1, 1), 16, ) )
+st = time.time()
+t1 = Thread(target=Terrain, args=((2, 2), 16, ) )
 t1.start()
 
 window.fullscreen = True
@@ -30,6 +32,7 @@ def update():
         player.selected = 4
 
 t1.join()
+print(time.time()-st)
 
 if __name__ == '__main__':
     app.run()
