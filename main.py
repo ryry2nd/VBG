@@ -1,5 +1,9 @@
 from ursina import *
 from Assets import *
+from threading import Thread
+
+t1 = Thread(target=Terrain, args=((1, 1), 16, ) )
+t1.start()
 
 window.fullscreen = True
 window.exit_button.visible = False
@@ -25,7 +29,7 @@ def update():
     elif held_keys['4']:
         player.selected = 4
 
-Terrain((1, 1, 16))
+t1.join()
 
 if __name__ == '__main__':
     app.run()
