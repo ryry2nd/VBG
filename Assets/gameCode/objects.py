@@ -95,7 +95,7 @@ class GameSky(Entity):
 	def __init__(self):
     		super().__init__(
 			parent = scene,
-			model = 'sphere',
+			model = "sphere",
 			texture = sky_texture,
 			scale = 10000,
 			double_sided = True,
@@ -183,9 +183,18 @@ class Terrain:
         self.generateTerrain()
 
     def generateTerrain(self):
+        threads = []
+
         for x in range(1, self.tLength+1):
             self.chunks.append([])
             for z in range(1, self.tWidth+1):
-                self.chunks[-1].append(Chunk((x*16-16, z*16-16), self.tHeight, self.noise, self.freq, self.amp))
+                t = ThreadWRet(target=Chunk, args=((x*16-16, z*16-16), self.tHeight, self.noise, self.freq, self.amp, ))
+                threads.append((len(self.chunks)-1, t))
+                t.start()
+        
+        for thread in threads:
+            x, t = thread
+            self.chunks[x].append(t.join())
+            
 
 __all__ = ["GameSky", "Terrain"]
