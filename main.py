@@ -4,7 +4,7 @@ from threading import Thread
 import time
 
 st = time.time()
-t1 = Thread(target=Terrain, args=((2, 2), 16, ) )
+t1 = Thread(target=Terrain, args=((1, 1), 16, ) )
 t1.start()
 
 window.fullscreen = True
