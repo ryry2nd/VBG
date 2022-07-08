@@ -112,12 +112,13 @@ class GameSky(Entity):
 class Chunk:
     blocks = []
 
-    def __init__(self, position, height, noise, freq, amp):
+    def __init__(self, position, height, noise, freq, amp, rowThreads=1):
         self.position = position
         self.height = height
         self.noise = noise
         self.freq = freq
         self.amp = amp
+        self.rowThreads = rowThreads
         self.generate_chunk()
         self.optimize()
 
@@ -144,13 +145,32 @@ class Chunk:
                     zAxises[-1][-1].truePos = (trueXPos, len(zAxises)-1, len(zAxises[-1])-1)
         return zAxises
 
+    def doJobsThread(self, q:Queue):
+        while not q.empty():
+            trueX, x, zPos, trueXPos = q.get()
+
+            self.blocks.insert(trueX, self.generateZAxises(x, zPos, trueXPos))
+            q.task_done()
+
     def generate_chunk(self):
+        jobs = Queue()
+
         xPos, zPos = self.position
         idx = 0
 
         for x in range(xPos, xPos+16):
-            self.blocks.append(self.generateZAxises(x, zPos, idx))
+            #self.blocks.append(None)
+            jobs.put((len(self.blocks)-1, x, zPos, idx))
             idx += 1
+        
+        if self.rowThreads > 1:
+            for i in range(self.rowThreads):
+                t = Thread(target=self.doJobsThread, args=(jobs, ))
+                t.start()
+        else:
+            self.doJobsThread(jobs)
+        
+        jobs.join()
 
     def optimize(self):
         maxX = len(self.blocks)
@@ -172,7 +192,7 @@ class Chunk:
 
 class Terrain:
     chunks = []
-    def __init__(self, terrainSize, terrainHeight=64, seed=time.time(), amp=6, freq=24, octaves=4, chunkThreads=2):
+    def __init__(self, terrainSize, terrainHeight=64, seed=time.time(), amp=6, freq=24, octaves=4, chunkThreads=2, rowThreads=1):
         self.tLength, self.tWidth = terrainSize
         self.tHeight = terrainHeight
         self.seed = seed
@@ -181,12 +201,13 @@ class Terrain:
         self.octaves = octaves
         self.noise = PerlinNoise(octaves=octaves, seed=seed)
         self.chunkThreads = chunkThreads
+        self.rowThreads = rowThreads
         self.generateTerrain()
 
     def loadChunkThread(self, q:Queue):
         while not q.empty():
             trueX, trueY, x, z = q.get()
-            self.chunks[trueX].insert(trueY, Chunk((x*16-16, z*16-16), self.tHeight, self.noise, self.freq, self.amp))
+            self.chunks[trueX].insert(trueY, Chunk((x*16-16, z*16-16), self.tHeight, self.noise, self.freq, self.amp, self.rowThreads))
             q.task_done()
 
     def generateTerrain(self):
@@ -195,14 +216,14 @@ class Terrain:
         for x in range(1, self.tLength+1):
             self.chunks.append([])
             for z in range(1, self.tWidth+1):
-                self.chunks[-1].append(None)
                 jobs.put((len(self.chunks)-1, len(self.chunks[-1])-1, x, z))
         
-        for i in range(self.chunkThreads):
-            t = Thread(target=self.loadChunkThread, args=(jobs, ))
-            t.start()
-        
-        jobs.join()
-            
+        if self.chunkThreads > 1 and self.tLength*self.tWidth > 1:
+            for i in range(self.chunkThreads):
+                t = Thread(target=self.loadChunkThread, args=(jobs, ))
+                t.start()
+            jobs.join()
+        else:
+            self.loadChunkThread(jobs)
 
 __all__ = ["GameSky", "Terrain"]

@@ -1,6 +1,11 @@
 from ursina import *
 from Assets import *
 
+SIZE = (2, 2)
+HEIGHT = 16
+CHUNK_THREADS = 4
+ROW_THREADS = 0
+
 window.fullscreen = True
 window.exit_button.visible = False
 window.vsync = True
@@ -25,7 +30,7 @@ def update():
     elif held_keys['4']:
         player.selected = 4
 
-terrain = Terrain(terrainSize=(2, 2), terrainHeight=6, chunkThreads=4)
+terrain = Terrain(terrainSize=SIZE, terrainHeight=HEIGHT, chunkThreads=CHUNK_THREADS, rowThreads=ROW_THREADS)
 
 if __name__ == '__main__':
     app.run()
