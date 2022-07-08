@@ -56,21 +56,27 @@ class Voxel(Button):
         if x != maxX and y <= len(self.chunk[x+1][z])-1 and self.chunk[x+1][z][y]!= None:
             self.chunk[x+1][z][y].visible = True
             self.chunk[x+1][z][y].enabled = True
+            self.chunk[x+1][z][y].parent = self.chunk
         if x != 0 and y <= len(self.chunk[x-1][z])-1 and self.chunk[x-1][z][y]!= None:
             self.chunk[x-1][z][y].visible = True
             self.chunk[x-1][z][y].enabled = True
+            self.chunk[x-1][z][y].parent = self.chunk
         if z != maxZ and y <= len(self.chunk[x][z+1])-1 and self.chunk[x][z+1][y]!= None:
             self.chunk[x][z+1][y].visible = True
             self.chunk[x][z+1][y].enabled = True
+            self.chunk[x][z+1][y].parent = self.chunk
         if z != 0 and y <= len(self.chunk[x][z-1])-1 and self.chunk[x][z-1][y]!= None:
             self.chunk[x][z-1][y].visible = True
             self.chunk[x][z-1][y].enabled = True
+            self.chunk[x][z-1][y].parent = self.chunk
         if y != maxY and self.chunk[x][z][y+1]!= None:
             self.chunk[x][z][y+1].visible = True
             self.chunk[x][z][y+1].enabled = True
+            self.chunk[x][z][y+1].parent = self.chunk
         if y != 0 and self.chunk[x][z][y-1]!= None:
             self.chunk[x][z][y-1].visible = True
             self.chunk[x][z][y-1].enabled = True
+            self.chunk[x][z][y-1].parent = self.chunk
 
 class Grass_block(Voxel):
     def __init__(self, position, truePos, chunk):
@@ -102,17 +108,21 @@ class GameSky(Entity):
             collision = False
             )
 
-class Chunk:
+class Chunk(Entity):
     blocks = []
 
     def __init__(self, position, height, noise, freq, amp):
-        self.position = position
+        super().__init__(model=None, collider=None)
+        self.position = (position[0], 0, position[1])
         self.height = height
         self.noise = noise
         self.freq = freq
         self.amp = amp
         self.generate_chunk()
         self.optimize()
+        self.combine()
+        self.collider = 'mesh'
+
 
     def generateZAxises(self, x, zPos, trueXPos):
         zAxises = []
@@ -140,7 +150,7 @@ class Chunk:
     def generate_chunk(self):
         threads = []
 
-        xPos, zPos = self.position
+        xPos, zPos = int(self.position.x), int(self.position.z)
         idx = 0
 
         for x in range(xPos, xPos+16):
@@ -167,6 +177,7 @@ class Chunk:
                         (z != 0 and y > len(self.blocks[x][z-1])-1)
                         ):
 
+                        self.blocks[x][z][y].parent = self
                         self.blocks[x][z][y].visible = False
                         self.blocks[x][z][y].enabled = False
 
