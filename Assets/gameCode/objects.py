@@ -108,21 +108,17 @@ class GameSky(Entity):
             collision = False
             )
 
-class Chunk(Entity):
+class Chunk:
     blocks = []
 
     def __init__(self, position, height, noise, freq, amp):
-        super().__init__(model=None, collider=None)
-        self.position = (position[0], 0, position[1])
+        self.position = position
         self.height = height
         self.noise = noise
         self.freq = freq
         self.amp = amp
         self.generate_chunk()
         self.optimize()
-        self.combine()
-        self.collider = 'mesh'
-
 
     def generateZAxises(self, x, zPos, trueXPos):
         zAxises = []
@@ -150,7 +146,7 @@ class Chunk(Entity):
     def generate_chunk(self):
         threads = []
 
-        xPos, zPos = int(self.position.x), int(self.position.z)
+        xPos, zPos = self.position
         idx = 0
 
         for x in range(xPos, xPos+16):
