@@ -150,13 +150,8 @@ class Chunk:
         idx = 0
 
         for x in range(xPos, xPos+16):
-            t = ThreadWRet(target=self.generateZAxises, args=(x, zPos, idx, ))
-            threads.append(t)
-            t.start()
+            self.blocks.append(self.generateZAxises(x, zPos, idx))
             idx += 1
-        
-        for thread in threads:
-            self.blocks.append(thread.join())
 
     def optimize(self):
         maxX = len(self.blocks)
@@ -173,7 +168,6 @@ class Chunk:
                         (z != 0 and y > len(self.blocks[x][z-1])-1)
                         ):
 
-                        self.blocks[x][z][y].parent = self
                         self.blocks[x][z][y].visible = False
                         self.blocks[x][z][y].enabled = False
 
