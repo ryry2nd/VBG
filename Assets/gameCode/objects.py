@@ -1,7 +1,7 @@
 from perlin_noise import PerlinNoise
 from ursina import *
+from threading import Thread
 from Assets.gameCode.vars import *
-from Assets.gameCode.threadingWithRet import ThreadWRet
 from queue import Queue
 
 class Voxel(Button):
@@ -199,7 +199,7 @@ class Terrain:
                 jobs.put((len(self.chunks)-1, len(self.chunks[-1])-1, x, z))
         
         for i in range(self.chunkThreads):
-            t = ThreadWRet(target=self.loadChunkThread, args=(jobs, ))
+            t = Thread(target=self.loadChunkThread, args=(jobs, ))
             t.start()
         
         jobs.join()
