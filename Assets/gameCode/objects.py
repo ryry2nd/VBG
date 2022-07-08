@@ -2,6 +2,7 @@ from perlin_noise import PerlinNoise
 from ursina import *
 from Assets.gameCode.vars import *
 from Assets.gameCode.threadingWithRet import ThreadWRet
+from queue import Queue
 
 class Voxel(Button):
     def __init__(self, texture, position, truePos, chunk, model="Assets/models/block"):
@@ -144,8 +145,6 @@ class Chunk:
         return zAxises
 
     def generate_chunk(self):
-        threads = []
-
         xPos, zPos = self.position
         idx = 0
 
@@ -173,7 +172,7 @@ class Chunk:
 
 class Terrain:
     chunks = []
-    def __init__(self, terrainSize, terrainHeight=64, seed=time.time(), amp=6, freq=24, octaves=4):
+    def __init__(self, terrainSize, terrainHeight=64, seed=time.time(), amp=6, freq=24, octaves=4, chunkThreads=2):
         self.tLength, self.tWidth = terrainSize
         self.tHeight = terrainHeight
         self.seed = seed
@@ -181,21 +180,29 @@ class Terrain:
         self.freq = freq
         self.octaves = octaves
         self.noise = PerlinNoise(octaves=octaves, seed=seed)
+        self.chunkThreads = chunkThreads
         self.generateTerrain()
 
+    def loadChunkThread(self, q:Queue):
+        while not q.empty():
+            trueX, trueY, x, z = q.get()
+            self.chunks[trueX].insert(trueY, Chunk((x*16-16, z*16-16), self.tHeight, self.noise, self.freq, self.amp))
+            q.task_done()
+
     def generateTerrain(self):
-        threads = []
+        jobs = Queue()
 
         for x in range(1, self.tLength+1):
             self.chunks.append([])
             for z in range(1, self.tWidth+1):
-                t = ThreadWRet(target=Chunk, args=((x*16-16, z*16-16), self.tHeight, self.noise, self.freq, self.amp, ))
-                threads.append((len(self.chunks)-1, t))
-                t.start()
+                self.chunks[-1].append(None)
+                jobs.put((len(self.chunks)-1, len(self.chunks[-1])-1, x, z))
         
-        for thread in threads:
-            x, t = thread
-            self.chunks[x].append(t.join())
+        for i in range(self.chunkThreads):
+            t = ThreadWRet(target=self.loadChunkThread, args=(jobs, ))
+            t.start()
+        
+        jobs.join()
             
 
 __all__ = ["GameSky", "Terrain"]

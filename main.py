@@ -25,7 +25,7 @@ def update():
     elif held_keys['4']:
         player.selected = 4
 
-terrain = Terrain((1, 1), 64)
+terrain = Terrain(terrainSize=(2, 2), terrainHeight=6, chunkThreads=4)
 
 if __name__ == '__main__':
     app.run()
