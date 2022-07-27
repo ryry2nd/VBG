@@ -1,10 +1,11 @@
 from ursina import *
 from Assets import *
+from Assets.gameCode.objects import Grass_block
 
-SIZE = (2, 2)
-HEIGHT = 16
+SIZE = (1, 1)
+HEIGHT = 3
 CHUNK_THREADS = 4
-ROW_THREADS = 0
+ROW_THREADS = 4
 
 window.fullscreen = True
 window.exit_button.visible = False
@@ -30,7 +31,8 @@ def update():
     elif held_keys['4']:
         player.selected = 4
 
-terrain = Terrain(terrainSize=SIZE, terrainHeight=HEIGHT, chunkThreads=CHUNK_THREADS, rowThreads=ROW_THREADS)
+terrain = Terrain(terrainSize=SIZE, terrainHeight=HEIGHT, chunkThreads=CHUNK_THREADS)
+Grass_block((1, 5, 0), (), None)
 
 if __name__ == '__main__':
     app.run()
