@@ -103,39 +103,81 @@ class Chunk:
             for z in range(maxZ):
                 maxY = len(self.blocks[x][z])
                 for y in range(maxY):
-                    if y != 0:
-                        self.blocks[x][z][y].bottom.visible = False
-                        self.blocks[x][z][y].bottom.enabled = False
-                    if y != maxY-1:
-                        self.blocks[x][z][y].top.visible = False
-                        self.blocks[x][z][y].top.enabled = False
-                    if x != maxX-1 and len(self.blocks[x+1][z])-1 >= y:
-                        self.blocks[x][z][y].left.visible = False
-                        self.blocks[x][z][y].left.enabled = False
-                    if x != 0 and len(self.blocks[x-1][z])-1 >= y:
-                        self.blocks[x][z][y].right.visible = False
-                        self.blocks[x][z][y].right.enabled = False
-                    if z != maxZ-1 and len(self.blocks[x][z+1])-1 >= y:
-                        self.blocks[x][z][y].front.visible = False
-                        self.blocks[x][z][y].front.enabled = False
-                    if z != 0 and len(self.blocks[x][z-1])-1 >= y:
-                        self.blocks[x][z][y].back.visible = False
-                        self.blocks[x][z][y].back.enabled = False
+                    if y == 0:
+                        self.blocks[x][z][y].toggleBottomFace()
+                    if y == maxY-1:
+                        self.blocks[x][z][y].toggleTopFace()
+                    if not(x != maxX-1 and len(self.blocks[x+1][z])-1 >= y):
+                        self.blocks[x][z][y].toggleLeftFace()
+                    if not(x != 0 and len(self.blocks[x-1][z])-1 >= y):
+                        self.blocks[x][z][y].toggleRightFace()
+                    if not(z != maxZ-1 and len(self.blocks[x][z+1])-1 >= y):
+                        self.blocks[x][z][y].toggleFrontFace()
+                    if not(z != 0 and len(self.blocks[x][z-1])-1 >= y):
+                        self.blocks[x][z][y].toggleBackFace()
 
 class Voxel:
     def __init__(self, position:tuple, texture:tuple, truePos:tuple, chunk:Chunk):
         self.position = position
-        x, y, z = position
+        self.texture = texture
 
-        self.top = Face((x, y+0.5, z), Vec3(90, 0, 0), texture[0], self)
-        self.bottom = Face((x, y-0.5, z), Vec3(-90, 0, 0), texture[1], self)
-        self.right = Face((x-0.5, y, z), Vec3(0, 90, 0), texture[2], self)
-        self.left = Face((x+0.5, y, z), Vec3(0, -90, 0), texture[3], self)
-        self.front = Face((x, y, z+0.5), Vec3(0, -180, 0), texture[4], self)
-        self.back = Face((x, y, z-0.5), Vec3(0, 0, 0), texture[5], self)
+        self.top = None
+        self.bottom = None
+        self.left = None
+        self.right = None
+        self.front = None
+        self.back = None
 
         self.chunk = chunk
         self.truePos = truePos
+
+    def toggleTopFace(self):
+        x, y, z = self.position
+        if self.top == None:
+            self.top = Face((x, y+0.5, z), Vec3(90, 0, 0), self.texture[0], self)
+        else:
+            destroy(self.top)
+            self.top = None
+    
+    def toggleBottomFace(self):
+        x, y, z = self.position
+        if self.bottom == None:
+            self.bottom = Face((x, y-0.5, z), Vec3(-90, 0, 0), self.texture[1], self)
+        else:
+            destroy(self.bottom)
+            self.bottom = None
+    
+    def toggleLeftFace(self):
+        x, y, z = self.position
+        if self.left == None:
+            self.left = Face((x+0.5, y, z), Vec3(0, -90, 0), self.texture[3], self)
+        else:
+            destroy(self.left)
+            self.left = None
+    
+    def toggleRightFace(self):
+        x, y, z = self.position
+        if self.right == None:
+            self.right = Face((x-0.5, y, z), Vec3(0, 90, 0), self.texture[2], self)
+        else:
+            destroy(self.right)
+            self.right = None
+    
+    def toggleFrontFace(self):
+        x, y, z = self.position
+        if self.front == None:
+            self.front = Face((x, y, z+0.5), Vec3(0, -180, 0), self.texture[4], self)
+        else:
+            destroy(self.front)
+            self.front = None
+
+    def toggleBackFace(self):
+        x, y, z = self.position
+        if self.back == None:
+            self.back = Face((x, y, z-0.5), Vec3(0, 0, 0), self.texture[5], self)
+        else:
+            destroy(self.back)
+            self.back = None
 
     def updateVisible(self):
         x, z, y = self.truePos
