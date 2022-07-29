@@ -3,9 +3,10 @@ from ursina.prefabs.first_person_controller import FirstPersonController
 
 class GamePlayer(FirstPersonController):
     selected = 1
+    jump_height = 1.5
 
 app = Ursina()
-player = GamePlayer(position=(0, 100, 0), jump_height=1.5)
+player = GamePlayer()
 
 grass_texture = (
                 load_texture("Assets/textures/grass/top.png"), 

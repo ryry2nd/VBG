@@ -16,8 +16,8 @@ class GameSky(Entity):
             )
 
 class Terrain:
-    chunks = []
-    def __init__(self, terrainSize, terrainHeight=64, seed=time.time(), amp=6, freq=24, octaves=4, chunkThreads=2):
+    def __init__(self, terrainSize, terrainHeight=64, seed=time.time(), amp=6, freq=24, octaves=4, chunkThreads=1):
+        self.chunks = []
         self.tLength, self.tWidth = terrainSize
         self.tHeight = terrainHeight
         self.seed = seed
@@ -31,15 +31,15 @@ class Terrain:
     def loadChunkThread(self, q:Queue):
         while not q.empty():
             trueX, trueY, x, z = q.get()
-            self.chunks[trueX].insert(trueY, Chunk((x*16-16, z*16-16), self.tHeight, self.noise, self.freq, self.amp))
+            self.chunks[trueX].insert(trueY, Chunk((x*16, z*16), self.tHeight, self.noise, self.freq, self.amp))
             q.task_done()
 
     def generateTerrain(self):
         jobs = Queue()
 
-        for x in range(1, self.tLength+1):
+        for x in range(self.tLength):
             self.chunks.append([])
-            for z in range(1, self.tWidth+1):
+            for z in range(self.tWidth):
                 jobs.put((len(self.chunks)-1, len(self.chunks[-1])-1, x, z))
         
         if self.chunkThreads > 1 and self.tLength*self.tWidth > 1:
@@ -51,9 +51,8 @@ class Terrain:
             self.loadChunkThread(jobs)
 
 class Chunk:
-    blocks = []
-
     def __init__(self, position, height, noise, freq, amp):
+        self.blocks = []
         self.position = position
         self.height = height
         self.noise = noise
@@ -107,13 +106,13 @@ class Chunk:
                         self.blocks[x][z][y].toggleBottomFace()
                     if y == maxY-1:
                         self.blocks[x][z][y].toggleTopFace()
-                    if not(x != maxX-1 and len(self.blocks[x+1][z])-1 >= y):
+                    if x != maxX-1 and len(self.blocks[x+1][z])-1 < y:
                         self.blocks[x][z][y].toggleLeftFace()
-                    if not(x != 0 and len(self.blocks[x-1][z])-1 >= y):
+                    if x != 0 and len(self.blocks[x-1][z])-1 < y:
                         self.blocks[x][z][y].toggleRightFace()
-                    if not(z != maxZ-1 and len(self.blocks[x][z+1])-1 >= y):
+                    if z != maxZ-1 and len(self.blocks[x][z+1])-1 < y:
                         self.blocks[x][z][y].toggleFrontFace()
-                    if not(z != 0 and len(self.blocks[x][z-1])-1 >= y):
+                    if z != 0 and len(self.blocks[x][z-1])-1 < y:
                         self.blocks[x][z][y].toggleBackFace()
 
 class Voxel:
@@ -178,6 +177,14 @@ class Voxel:
         else:
             destroy(self.back)
             self.back = None
+    
+    def toggleAllFaces(self):
+        self.toggleTopFace()
+        self.toggleBottomFace()
+        self.toggleLeftFace()
+        self.toggleRightFace()
+        self.toggleFrontFace()
+        self.toggleBackFace()
 
     def updateVisible(self):
         x, z, y = self.truePos
@@ -186,29 +193,23 @@ class Voxel:
         maxZ = len(self.chunk.blocks[x])
         maxY = len(self.chunk.blocks[x][z])
 
-        if x < maxX and y <= len(self.chunk.blocks[x+1][z])-1 and self.chunk.blocks[x+1][z][y] != None:
-            self.chunk.blocks[x+1][z][y].visible = True
-            self.chunk.blocks[x+1][z][y].enabled = True
-        if x > 0 and y <= len(self.chunk.blocks[x-1][z])-1 and self.chunk.blocks[x-1][z][y] != None:
-            self.chunk.blocks[x-1][z][y].visible = True
-            self.chunk.blocks[x-1][z][y].enabled = True
-        if z < maxZ and y <= len(self.chunk.blocks[x][z+1])-1 and self.chunk.blocks[x][z+1][y] != None:
-            self.chunk.blocks[x][z+1][y].visible = True
-            self.chunk.blocks[x][z+1][y].enabled = True
-        if z > 0 and y <= len(self.chunk.blocks[x][z-1])-1 and self.chunk.blocks[x][z-1][y] != None:
-            self.chunk.blocks[x][z-1][y].visible = True
-            self.chunk.blocks[x][z-1][y].enabled = True
-        if y < maxY and self.chunk.blocks[x][z][y+1]!= None:
-            self.chunk.blocks[x][z][y+1].visible = True
-            self.chunk.blocks[x][z][y+1].enabled = True
-        if y > 0 and self.chunk.blocks[x][z][y-1]!= None:
-            self.chunk.blocks[x][z][y-1].visible = True
-            self.chunk.blocks[x][z][y-1].enabled = True
+        if y != maxY-1 and self.chunk.blocks[x][z][y+1] != None:
+            self.chunk.blocks[x][z][y+1].toggleBottomFace()
+        if y != 0 and self.chunk.blocks[x][z][y-1]!= None:
+            self.chunk.blocks[x][z][y-1].toggleTopFace()
+        if x != maxX-1 and y <= len(self.chunk.blocks[x+1][z])-1 and self.chunk.blocks[x+1][z][y] != None:
+            self.chunk.blocks[x+1][z][y].toggleRightFace()
+        if x != 0 and y <= len(self.chunk.blocks[x-1][z])-1 and self.chunk.blocks[x-1][z][y] != None:
+            self.chunk.blocks[x-1][z][y].toggleLeftFace()
+        if z != maxZ-1 and y <= len(self.chunk.blocks[x][z+1])-1 and self.chunk.blocks[x][z+1][y] != None:
+            self.chunk.blocks[x][z+1][y].toggleBackFace()
+        if z != 0 and y <= len(self.chunk.blocks[x][z-1])-1 and self.chunk.blocks[x][z-1][y] != None:
+            self.chunk.blocks[x][z-1][y].toggleFrontFace()
 
     def breakBlock(self):
         x, z, y = self.truePos
 
-        #self.updateVisible()
+        self.updateVisible()
 
         self.chunk.blocks[x][z][y] = None
 
@@ -218,29 +219,7 @@ class Voxel:
         destroy(self.right)
         destroy(self.front)
         destroy(self.back)
-
-class Face(Button):
-    def __init__(self, position, rotation, texture, block):
-        self.block = block
-        super().__init__(
-        parent = scene,
-        position = position,
-        rotation = rotation,
-        model = "quad",
-        texture = texture,
-        color = color.color(0, 0, 2),
-        highlight_color = color.white
-        )
-
-    def input(self, key):
-        if self.hovered and mouse.normal:
-            pos = self.position + mouse.normal
-            if distance(pos, player) < 7:
-                if key == 'right mouse down':
-                    self.place(pos)
-                elif key == 'left mouse down':
-                    self.block.breakBlock()
-
+    
     def place(self, pos):
         rp = pos-self.position
         rx, ry, rz = rp.x, rp.y, rp.z
@@ -261,6 +240,41 @@ class Face(Button):
             Stone_block(pos)
         elif player.selected == 4:
             Bedrock_block(pos)
+        
+        if ny == 0:
+            self.chunk.blocks[nx][nz][ny].toggleBottomFace()
+        if ny == maxY-1:
+            self.chunk.blocks[nx][nz][ny].toggleTopFace()
+        if not(nx != maxX-1 and len(self.chunk.blocks[x+1][z])-1 >= ny):
+            self.chunk.blocks[nx][nz][ny].toggleLeftFace()
+        if not(nx != 0 and len(self.chunk.blocks[nx-1][nz])-1 >= ny):
+            self.chunk.blocks[x][z][y].toggleRightFace()
+        if not(nz != maxZ-1 and len(self.chunk.blocks[nx][nz+1])-1 >= ny):
+            self.chunk.blocks[nx][nz][ny].toggleFrontFace()
+        if not(nz != 0 and len(self.chunk.blocks[nx][nz-1])-1 >= ny):
+            self.chunk.blocks[nx][nz][ny].toggleBackFace()
+
+class Face(Button):
+    def __init__(self, position, rotation, texture, block):
+        self.block = block
+        super().__init__(
+        parent = scene,
+        position = position,
+        rotation = rotation,
+        model = "quad",
+        texture = texture,
+        color = color.color(0, 0, 2),
+        highlight_color = color.white
+        )
+
+    def input(self, key):
+        if self.hovered and mouse.normal:
+            pos = self.position + mouse.normal
+            if distance(pos, player) < 7:
+                if key == 'right mouse down':
+                    self.block.place(pos)
+                elif key == 'left mouse down':
+                    self.block.breakBlock()
 
 class Grass_block(Voxel):
     def __init__(self, position, truePos, chunk):
