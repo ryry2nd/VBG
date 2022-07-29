@@ -31,7 +31,7 @@ class Terrain:
     def loadChunkThread(self, q:Queue):
         while not q.empty():
             trueX, trueY, x, z = q.get()
-            self.chunks[trueX].insert(trueY, Chunk((x*16, z*16), self.tHeight, self.noise, self.freq, self.amp))
+            self.chunks[trueX].insert(trueY, Chunk((x*16-(self.tLength*16)//2, z*16-(self.tLength*16)//2), self.tHeight, self.noise, self.freq, self.amp))
             q.task_done()
 
     def generateTerrain(self):
