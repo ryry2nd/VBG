@@ -31,7 +31,7 @@ class Terrain:
     def loadChunkThread(self, q:Queue):
         while not q.empty():
             trueX, trueY, x, z = q.get()
-            self.chunks[trueX].insert(trueY, Chunk((x*16-(self.tLength*16)//2, z*16-(self.tLength*16)//2), self.tHeight, self.noise, self.freq, self.amp))
+            self.chunks[trueX].insert(trueY, Chunk((x*16-(self.tLength*16)//2, z*16-(self.tLength*16)//2), (trueX, trueY), self.tHeight, self.noise, self.freq, self.amp))
             q.task_done()
 
     def generateTerrain(self):
@@ -51,9 +51,10 @@ class Terrain:
             self.loadChunkThread(jobs)
 
 class Chunk:
-    def __init__(self, position, height, noise, freq, amp):
+    def __init__(self, position, truePos, height, noise, freq, amp):
         self.blocks = []
         self.position = position
+        self.truePos = truePos
         self.height = height
         self.noise = noise
         self.freq = freq
@@ -221,38 +222,38 @@ class Voxel:
         destroy(self.back)
     
     def place(self, pos):
-        rp = pos-self.position
-        rx, ry, rz = rp.x, rp.y, rp.z
-        x, z, y = self.truePos
-        
-        nx, ny, nz = int(rx+x), int(ry+y), int(rz+z)
+        x, y, z = (None, None, None)
 
-        maxX, maxY, maxZ = len(self.chunk.blocks)-1, len(self.chunk.blocks[nx])-1, len(self.chunk.blocks[nx][nz])-1
+        maxX, maxZ, maxY = len(self.chunk.blocks), len(self.chunk.blocks[x]), len(self.chunk.blocks[x][z])
 
-        if nx>maxX and ny>maxY and nz>maxZ and self.chunk.blocks[nx][nz][ny] == None:
-            self.chunk.blocks[nx][nz].pop(ny)
+        if x>maxX-1 and y>maxY-1 and z>maxZ-1 and self.chunk.blocks[x][z][y] == None:
+            self.chunk.blocks[x][z].pop(y)
 
         if player.selected == 1:
-            self.chunk.blocks[nx][nz].insert(ny, Grass_block(pos, (nx, nz, ny), self.chunk))
+            self.chunk.blocks[x][z].insert(y, Grass_block(pos, (x, z, y), self.chunk))
         elif player.selected == 2:
-            Dirt_block(pos)
+            self.chunk.blocks[x][z].insert(y, Dirt_block(pos, (x, z, y), self.chunk))
         elif player.selected == 3:
-            Stone_block(pos)
+            self.chunk.blocks[x][z].insert(y, Stone_block(pos, (x, z, y), self.chunk))
         elif player.selected == 4:
             Bedrock_block(pos)
         
-        if ny == 0:
-            self.chunk.blocks[nx][nz][ny].toggleBottomFace()
-        if ny == maxY-1:
-            self.chunk.blocks[nx][nz][ny].toggleTopFace()
-        if not(nx != maxX-1 and len(self.chunk.blocks[x+1][z])-1 >= ny):
-            self.chunk.blocks[nx][nz][ny].toggleLeftFace()
-        if not(nx != 0 and len(self.chunk.blocks[nx-1][nz])-1 >= ny):
-            self.chunk.blocks[x][z][y].toggleRightFace()
-        if not(nz != maxZ-1 and len(self.chunk.blocks[nx][nz+1])-1 >= ny):
-            self.chunk.blocks[nx][nz][ny].toggleFrontFace()
-        if not(nz != 0 and len(self.chunk.blocks[nx][nz-1])-1 >= ny):
-            self.chunk.blocks[nx][nz][ny].toggleBackFace()
+        self.chunk.blocks[x][z][y].toggleTopFace()
+        
+        maxX, maxZ, maxY = len(self.chunk.blocks), len(self.chunk.blocks[x]), len(self.chunk.blocks[x][z])
+
+        if y != maxY-1 and self.chunk.blocks[x][z][y+1] != None:
+            self.chunk.blocks[x][z][y+1].toggleBottomFace()
+        if y != 0 and self.chunk.blocks[x][z][y-1]!= None:
+            self.chunk.blocks[x][z][y-1].toggleTopFace()
+        if x != maxX-1 and y <= len(self.chunk.blocks[x+1][z])-1 and self.chunk.blocks[x+1][z][y] != None:
+            self.chunk.blocks[x+1][z][y].toggleRightFace()
+        if x != 0 and y <= len(self.chunk.blocks[x-1][z])-1 and self.chunk.blocks[x-1][z][y] != None:
+            self.chunk.blocks[x-1][z][y].toggleLeftFace()
+        if z != maxZ-1 and y <= len(self.chunk.blocks[x][z+1])-1 and self.chunk.blocks[x][z+1][y] != None:
+            self.chunk.blocks[x][z+1][y].toggleBackFace()
+        if z != 0 and y <= len(self.chunk.blocks[x][z-1])-1 and self.chunk.blocks[x][z-1][y] != None:
+            self.chunk.blocks[x][z-1][y].toggleFrontFace()
 
 class Face(Button):
     def __init__(self, position, rotation, texture, block):
@@ -264,7 +265,7 @@ class Face(Button):
         model = "quad",
         texture = texture,
         color = color.color(0, 0, 2),
-        highlight_color = color.white
+        highlight_color = color.gray
         )
 
     def input(self, key):

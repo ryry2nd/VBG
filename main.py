@@ -1,10 +1,10 @@
 from ursina import *
 from Assets import *
 
-SIZE = (3, 3)
+SIZE = (4, 4)
 HEIGHT = 16
 CHUNK_THREADS = 4
-SEED = 0
+SEED = time.time()
 
 window.fullscreen = True
 window.exit_button.visible = False
@@ -17,6 +17,7 @@ def input(key):
         exit()
     elif key == 'r':
         player.position = startPos
+        player.air_time = 0
 
 def update():
     global sky, player
@@ -34,7 +35,12 @@ def update():
 
 terrain = Terrain(terrainSize=SIZE, terrainHeight=HEIGHT, chunkThreads=CHUNK_THREADS, seed=SEED)
 
-startPos = (0, len(terrain.chunks[0][0].blocks[0][0]), 0)
+xChunk = len(terrain.chunks)//2
+yChunk = len(terrain.chunks[xChunk])//2
+xBlock = len(terrain.chunks[xChunk][yChunk].blocks)//2
+yBlock = len(terrain.chunks[xChunk][yChunk].blocks[xBlock])//2
+
+startPos = (0, len(terrain.chunks[xChunk][yChunk].blocks[xBlock][yBlock]), 0)
 player.position = startPos
 
 if __name__ == '__main__':
