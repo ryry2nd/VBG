@@ -2,10 +2,10 @@ from perlin_noise import PerlinNoise
 from queue import Queue
 from threading import Thread
 from Assets.gameCode.objects.blocks import *
-import time
+import time, random
 
 class Terrain:
-    def __init__(self, terrainSize, terrainHeight=64, seed=time.time(), amp=6, freq=24, octaves=4, chunkThreads=1):
+    def __init__(self, terrainSize, terrainHeight=64, seed=random.randint(0, 1000000000000000000000000000), amp=[6, 24], freq=[24, 48], octaves=4, chunkThreads=1):
         self.chunks = []
         self.tLength, self.tWidth = terrainSize
         self.tHeight = terrainHeight
@@ -52,7 +52,10 @@ class Chunk:
         self.optimize()
     
     def generateNoise(self, x, z):
-        return self.noise([x/self.freq,z/self.freq])*self.amp
+        lowNoise = self.noise([x / self.freq[0], z / self.freq[0]]) * self.amp[0]
+        highNoise = self.noise([x / self.freq[1], z / self.freq[1]]) * self.amp[1]
+
+        return (lowNoise + highNoise) / 2
 
     def generateZAxises(self, x, zPos, trueXPos):
         zAxises = []

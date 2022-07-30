@@ -4,7 +4,7 @@ from Assets import *
 SIZE = (3, 3)
 HEIGHT = 16
 CHUNK_THREADS = 4
-SEED = time.time()
+SEED = random.randint(0, 1000000000000000000000000000)
 
 window.fullscreen = True
 window.exit_button.visible = False
