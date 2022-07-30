@@ -1,7 +1,7 @@
 from ursina import *
 from Assets import *
 
-SIZE = (4, 4)
+SIZE = (3, 3)
 HEIGHT = 16
 CHUNK_THREADS = 4
 SEED = time.time()
