@@ -1,5 +1,6 @@
 from Assets.gameCode.vars import *
 from Assets.gameCode.objects.blocks import *
+from Assets.gameCode.player import *
 from ursina import *
 
 class Voxel:

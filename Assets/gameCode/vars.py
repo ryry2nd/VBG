@@ -1,13 +1,6 @@
 from ursina import *
-from ursina.prefabs.first_person_controller import FirstPersonController
-
-class GamePlayer(FirstPersonController):
-    selected = 1
-    jump_height = 1.5
 
 app = Ursina()
-player = FirstPersonController(jump_height=1.5)
-player.selected = 1
 
 grass_texture = (
                 load_texture("Assets/textures/grass/top.png"), 
@@ -44,4 +37,4 @@ bedrock_texture = (
 
 sky_texture = load_texture("Assets/textures/skybox.png")
 
-__all__ = ["app", "player", "grass_texture", "dirt_texture", "stone_texture", "sky_texture", "bedrock_texture"]
+__all__ = ["app", "sky_texture", "bedrock_texture", "stone_texture", "dirt_texture", "grass_texture"]

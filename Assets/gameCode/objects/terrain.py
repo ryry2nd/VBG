@@ -2,7 +2,7 @@ from perlin_noise import PerlinNoise
 from queue import Queue
 from threading import Thread
 from Assets.gameCode.objects.blocks import *
-import time, random
+import random
 
 class Terrain:
     def __init__(self, terrainSize, terrainHeight=64, seed=random.randint(0, 1000000000000000000000000000), amp=[6, 24], freq=[24, 48], octaves=4, chunkThreads=1):
@@ -20,7 +20,7 @@ class Terrain:
     def loadChunkThread(self, q:Queue):
         while not q.empty():
             trueX, trueY, x, z = q.get()
-            self.chunks[trueX].insert(trueY, Chunk((x*16-(self.tLength*16)//2, z*16-(self.tLength*16)//2), (trueX, trueY), self.tHeight, self.noise, self.freq, self.amp))
+            self.chunks[trueX][trueY] = Chunk((x*16-(self.tLength*16)//2, z*16-(self.tLength*16)//2), (trueX, trueY), self.tHeight, self.noise, self.freq, self.amp, self)
             q.task_done()
 
     def generateTerrain(self):
@@ -29,9 +29,10 @@ class Terrain:
         for x in range(self.tLength):
             self.chunks.append([])
             for z in range(self.tWidth):
+                self.chunks[-1].append(None)
                 jobs.put((len(self.chunks)-1, len(self.chunks[-1])-1, x, z))
         
-        if self.chunkThreads > 1 and self.tLength*self.tWidth > 1:
+        if self.chunkThreads > 1 and self.tLength * self.tWidth > 1:
             for i in range(self.chunkThreads):
                 t = Thread(target=self.loadChunkThread, args=(jobs, ))
                 t.start()
@@ -40,10 +41,11 @@ class Terrain:
             self.loadChunkThread(jobs)
 
 class Chunk:
-    def __init__(self, position, truePos, height, noise, freq, amp):
+    def __init__(self, position, truePos, height, noise, freq, amp, terrain: Terrain):
         self.blocks = []
         self.position = position
         self.truePos = truePos
+        self.terrain = terrain
         self.height = height
         self.noise = noise
         self.freq = freq
@@ -92,6 +94,10 @@ class Chunk:
             idx += 1
 
     def optimize(self):
+        ctx, ctz = self.truePos
+        cMaxX = len(self.terrain.chunks)
+        cMaxZ = len(self.terrain.chunks[ctx])
+
         maxX = len(self.blocks)
         for x in range(maxX):
             maxZ = len(self.blocks[x])
