@@ -18,6 +18,7 @@ class Terrain:
         self.noise = PerlinNoise(octaves=octaves, seed=seed)
         self.chunkThreads = chunkThreads
         self.generateTerrain()
+        self.optimize()
 
     def loadChunkThread(self, q:Queue):
         while not q.empty():
@@ -41,6 +42,38 @@ class Terrain:
             jobs.join()
         else:
             self.loadChunkThread(jobs)
+    
+    def optimize(self):
+        for cx in range(self.tLength):
+            for cz in range(self.tWidth):
+                if cx != 0:
+                    maxZ = len(self.chunks[cx][cz].blocks[0])
+                    for z in range(maxZ):
+                        maxY = len(self.chunks[cx][cz].blocks[0][z])
+                        for y in range(maxY):
+                            if len(self.chunks[cx-1][cz].blocks[-1][z])-1 < y:
+                                self.chunks[cx][cz].blocks[0][z][y].toggleRightFace()
+                if cx != self.tLength-1:
+                    maxZ = len(self.chunks[cx][cz].blocks[-1])
+                    for z in range(maxZ):
+                        maxY = len(self.chunks[cx][cz].blocks[-1][z])
+                        for y in range(maxY):
+                            if len(self.chunks[cx+1][cz].blocks[0][z])-1 < y:
+                                self.chunks[cx][cz].blocks[-1][z][y].toggleLeftFace()
+                if cz != 0:
+                    maxX = len(self.chunks[cx][cz].blocks)
+                    for x in range(maxX):
+                        maxY = len(self.chunks[cx][cz].blocks[x][0])
+                        for y in range(maxY):
+                            if len(self.chunks[cx][cz-1].blocks[x][-1])-1 < y:
+                                self.chunks[cx][cz].blocks[x][0][y].toggleBackFace()
+                if cz != self.tWidth-1:
+                    maxX = len(self.chunks[cx][cz].blocks)
+                    for x in range(maxX):
+                        maxY = len(self.chunks[cx][cz].blocks[x][-1])
+                        for y in range(maxY):
+                            if len(self.chunks[cx][cz+1].blocks[x][0])-1 < y:
+                                self.chunks[cx][cz].blocks[x][-1][y].toggleFrontFace()
 
 class Chunk:
     def __init__(self, position, truePos, height, noise, freq, amp, scale, offset, terrain: Terrain):

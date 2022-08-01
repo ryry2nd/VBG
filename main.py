@@ -3,7 +3,7 @@ import random
 
 SIZE = (3, 3)
 HEIGHT = 16
-CHUNK_THREADS = 4
+CHUNK_THREADS = 9
 SEED = random.randint(0, 1000000000000000000000000000)
 
 terrain = Terrain(terrainSize=SIZE, terrainHeight=HEIGHT, chunkThreads=CHUNK_THREADS, seed=SEED)
