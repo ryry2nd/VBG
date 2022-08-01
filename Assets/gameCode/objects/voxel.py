@@ -107,7 +107,9 @@ class Voxel:
         destroy(self.back)
     
     def place(self, pos):
-        x, y, z = (None, None, None)
+        x = int((pos.x*self.truePos[0])/self.position[0])
+        y = int((pos.y*self.truePos[2])/self.position[1])
+        z = int((pos.z*self.truePos[1])/self.position[2])
 
         maxY = len(self.chunk.blocks[x][z])
 
@@ -154,10 +156,10 @@ class Face(Button):
 
     def input(self, key):
         if self.hovered and mouse.normal:
-            pos = self.position + mouse.normal
-            if distance(pos, player) < 7:
+            hitInfo = raycast(camera.world_position, camera.forward, distance=5)
+            if hitInfo.hit:
                 if key == 'right mouse down':
-                    self.block.place(pos)
+                    self.block.place(hitInfo.entity.position + hitInfo.normal)
                 elif key == 'left mouse down':
                     self.block.breakBlock()
 

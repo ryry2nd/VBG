@@ -24,8 +24,6 @@ def input(key):
         player.selected = 2
     elif key == '3':
         player.selected = 3
-    elif key == '4':
-        player.selected = 4
 
 def update():
     sky.position = player.position
