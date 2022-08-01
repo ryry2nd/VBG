@@ -4,7 +4,7 @@ from Assets.gameCode.player import *
 from ursina import *
 
 class Voxel:
-    def __init__(self, position:tuple, texture:tuple, truePos:tuple, chunk):
+    def __init__(self, position:tuple, texture:tuple, truePos:tuple, chunk, collider='box'):
         self.position = position
         self.texture = texture
 
@@ -17,11 +17,12 @@ class Voxel:
 
         self.chunk = chunk
         self.truePos = truePos
+        self.collider = collider
 
     def toggleTopFace(self):
         x, y, z = self.position
         if self.top == None:
-            self.top = Face((x, y+0.5, z), Vec3(90, 0, 0), self.texture[0], self)
+            self.top = Face((x, y+0.5, z), Vec3(90, 0, 0), self.texture[0], self, collider=self.collider)
         else:
             destroy(self.top)
             self.top = None
@@ -29,7 +30,7 @@ class Voxel:
     def toggleBottomFace(self):
         x, y, z = self.position
         if self.bottom == None:
-            self.bottom = Face((x, y-0.5, z), Vec3(-90, 0, 0), self.texture[1], self)
+            self.bottom = Face((x, y-0.5, z), Vec3(-90, 0, 0), self.texture[1], self, collider=self.collider)
         else:
             destroy(self.bottom)
             self.bottom = None
@@ -37,7 +38,7 @@ class Voxel:
     def toggleLeftFace(self):
         x, y, z = self.position
         if self.left == None:
-            self.left = Face((x+0.5, y, z), Vec3(0, -90, 0), self.texture[3], self)
+            self.left = Face((x+0.5, y, z), Vec3(0, -90, 0), self.texture[3], self, collider=self.collider)
         else:
             destroy(self.left)
             self.left = None
@@ -45,7 +46,7 @@ class Voxel:
     def toggleRightFace(self):
         x, y, z = self.position
         if self.right == None:
-            self.right = Face((x-0.5, y, z), Vec3(0, 90, 0), self.texture[2], self)
+            self.right = Face((x-0.5, y, z), Vec3(0, 90, 0), self.texture[2], self, collider=self.collider)
         else:
             destroy(self.right)
             self.right = None
@@ -53,7 +54,7 @@ class Voxel:
     def toggleFrontFace(self):
         x, y, z = self.position
         if self.front == None:
-            self.front = Face((x, y, z+0.5), Vec3(0, -180, 0), self.texture[4], self)
+            self.front = Face((x, y, z+0.5), Vec3(0, -180, 0), self.texture[4], self, collider=self.collider)
         else:
             destroy(self.front)
             self.front = None
@@ -61,7 +62,7 @@ class Voxel:
     def toggleBackFace(self):
         x, y, z = self.position
         if self.back == None:
-            self.back = Face((x, y, z-0.5), Vec3(0, 0, 0), self.texture[5], self)
+            self.back = Face((x, y, z-0.5), Vec3(0, 0, 0), self.texture[5], self, collider=self.collider)
         else:
             destroy(self.back)
             self.back = None
@@ -143,7 +144,7 @@ class Voxel:
             self.chunk.blocks[x][z-1][y].toggleFrontFace()
 
 class Face(Button):
-    def __init__(self, position, rotation, texture, block):
+    def __init__(self, position, rotation, texture, block:Voxel, collider="box"):
         self.block = block
         super().__init__(
         parent = scene,
@@ -152,7 +153,8 @@ class Face(Button):
         model = "quad",
         texture = texture,
         color = color.color(0, 0, 2),
-        highlight_color = color.gray
+        highlight_color = color.gray,
+        collider=collider
         )
 
     def input(self, key):

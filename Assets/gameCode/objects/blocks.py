@@ -20,4 +20,8 @@ class Bedrock_block(Voxel):
     def breakBlock(self):
         pass
 
-__all__ = ["Grass_block", "Dirt_block", "Stone_block", "Bedrock_block"]
+class Water(Voxel):
+    def __init__(self, position, truePos, chunk):
+        super().__init__(position, water_texture, truePos, chunk, collider=None)
+
+__all__ = ["Grass_block", "Dirt_block", "Stone_block", "Bedrock_block", "Water"]

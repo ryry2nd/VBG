@@ -5,13 +5,15 @@ from Assets.gameCode.objects.blocks import *
 import random
 
 class Terrain:
-    def __init__(self, terrainSize, terrainHeight=64, seed=random.randint(0, 1000000000000000000000000000), amp=[6, 24], freq=[24, 48], octaves=4, chunkThreads=1):
+    def __init__(self, terrainSize, terrainHeight=64, seed=random.randint(0, 1000000000000000000000000000), amp=[6, 24], freq=[48, 96], octaves=4, offset=[0, 0], scale=1, chunkThreads=1):
         self.chunks = []
         self.tLength, self.tWidth = terrainSize
         self.tHeight = terrainHeight
+        self.offset = offset
+        self.scale = scale
         self.seed = seed
-        self.amp = amp
         self.freq = freq
+        self.amp = amp
         self.octaves = octaves
         self.noise = PerlinNoise(octaves=octaves, seed=seed)
         self.chunkThreads = chunkThreads
@@ -20,7 +22,7 @@ class Terrain:
     def loadChunkThread(self, q:Queue):
         while not q.empty():
             trueX, trueY, x, z = q.get()
-            self.chunks[trueX][trueY] = Chunk((x*16-(self.tLength*16)//2, z*16-(self.tLength*16)//2), (trueX, trueY), self.tHeight, self.noise, self.freq, self.amp, self)
+            self.chunks[trueX][trueY] = Chunk((x*16-(self.tLength*16)//2, z*16-(self.tLength*16)//2), (trueX, trueY), self.tHeight, self.noise, self.freq, self.amp, self.scale, self.offset, self)
             q.task_done()
 
     def generateTerrain(self):
@@ -41,12 +43,14 @@ class Terrain:
             self.loadChunkThread(jobs)
 
 class Chunk:
-    def __init__(self, position, truePos, height, noise, freq, amp, terrain: Terrain):
+    def __init__(self, position, truePos, height, noise, freq, amp, scale, offset, terrain: Terrain):
         self.blocks = []
         self.position = position
         self.truePos = truePos
         self.terrain = terrain
         self.height = height
+        self.offset = offset
+        self.scale = scale
         self.noise = noise
         self.freq = freq
         self.amp = amp
@@ -54,6 +58,11 @@ class Chunk:
         self.optimize()
     
     def generateNoise(self, x, z):
+        x += self.offset[0]
+        z += self.offset[1]
+        x *= self.scale
+        z *= self.scale
+
         lowNoise = self.noise([x / self.freq[0], z / self.freq[0]]) * self.amp[0]
         highNoise = self.noise([x / self.freq[1], z / self.freq[1]]) * self.amp[1]
 
@@ -66,6 +75,9 @@ class Chunk:
             zAxises.append([])
             ty = round(self.generateNoise(x, z))
             maxY = ty+self.height
+
+            if maxY > 128:
+                maxY = 128
 
             zAxises[-1].append(Bedrock_block((x, 0, z), None, self))
             zAxises[-1][-1].truePos = (trueXPos, len(zAxises)-1, len(zAxises[-1])-1)
@@ -83,6 +95,7 @@ class Chunk:
                 else:
                     zAxises[-1].append(Grass_block((x, y, z), None, self))
                     zAxises[-1][-1].truePos = (trueXPos, len(zAxises)-1, len(zAxises[-1])-1)
+
         return zAxises
 
     def generate_chunk(self):
@@ -94,10 +107,6 @@ class Chunk:
             idx += 1
 
     def optimize(self):
-        ctx, ctz = self.truePos
-        cMaxX = len(self.terrain.chunks)
-        cMaxZ = len(self.terrain.chunks[ctx])
-
         maxX = len(self.blocks)
         for x in range(maxX):
             maxZ = len(self.blocks[x])
