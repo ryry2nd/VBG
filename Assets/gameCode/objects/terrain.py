@@ -47,29 +47,25 @@ class Terrain:
         for cx in range(self.tLength):
             for cz in range(self.tWidth):
                 if cx != 0:
-                    maxZ = len(self.chunks[cx][cz].blocks[0])
-                    for z in range(maxZ):
+                    for z in range(16):
                         maxY = len(self.chunks[cx][cz].blocks[0][z])
                         for y in range(maxY):
                             if len(self.chunks[cx-1][cz].blocks[-1][z])-1 < y:
                                 self.chunks[cx][cz].blocks[0][z][y].toggleRightFace()
                 if cx != self.tLength-1:
-                    maxZ = len(self.chunks[cx][cz].blocks[-1])
-                    for z in range(maxZ):
+                    for z in range(16):
                         maxY = len(self.chunks[cx][cz].blocks[-1][z])
                         for y in range(maxY):
                             if len(self.chunks[cx+1][cz].blocks[0][z])-1 < y:
                                 self.chunks[cx][cz].blocks[-1][z][y].toggleLeftFace()
                 if cz != 0:
-                    maxX = len(self.chunks[cx][cz].blocks)
-                    for x in range(maxX):
+                    for x in range(16):
                         maxY = len(self.chunks[cx][cz].blocks[x][0])
                         for y in range(maxY):
                             if len(self.chunks[cx][cz-1].blocks[x][-1])-1 < y:
                                 self.chunks[cx][cz].blocks[x][0][y].toggleBackFace()
                 if cz != self.tWidth-1:
-                    maxX = len(self.chunks[cx][cz].blocks)
-                    for x in range(maxX):
+                    for x in range(16):
                         maxY = len(self.chunks[cx][cz].blocks[x][-1])
                         for y in range(maxY):
                             if len(self.chunks[cx][cz+1].blocks[x][0])-1 < y:
@@ -140,21 +136,19 @@ class Chunk:
             idx += 1
 
     def optimize(self):
-        maxX = len(self.blocks)
-        for x in range(maxX):
-            maxZ = len(self.blocks[x])
-            for z in range(maxZ):
+        for x in range(16):
+            for z in range(16):
                 maxY = len(self.blocks[x][z])
                 for y in range(maxY):
                     if y == 0:
                         self.blocks[x][z][y].toggleBottomFace()
                     if y == maxY-1:
                         self.blocks[x][z][y].toggleTopFace()
-                    if x != maxX-1 and len(self.blocks[x+1][z])-1 < y:
+                    if x != 15 and len(self.blocks[x+1][z])-1 < y:
                         self.blocks[x][z][y].toggleLeftFace()
                     if x != 0 and len(self.blocks[x-1][z])-1 < y:
                         self.blocks[x][z][y].toggleRightFace()
-                    if z != maxZ-1 and len(self.blocks[x][z+1])-1 < y:
+                    if z != 15 and len(self.blocks[x][z+1])-1 < y:
                         self.blocks[x][z][y].toggleFrontFace()
                     if z != 0 and len(self.blocks[x][z-1])-1 < y:
                         self.blocks[x][z][y].toggleBackFace()

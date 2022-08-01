@@ -77,20 +77,17 @@ class Voxel:
 
     def updateVisible(self):
         x, z, y = self.truePos
-
-        maxX = len(self.chunk.blocks)
-        maxZ = len(self.chunk.blocks[x])
         maxY = len(self.chunk.blocks[x][z])
 
         if y != maxY-1 and self.chunk.blocks[x][z][y+1] != None:
             self.chunk.blocks[x][z][y+1].toggleBottomFace()
         if y != 0 and self.chunk.blocks[x][z][y-1]!= None:
             self.chunk.blocks[x][z][y-1].toggleTopFace()
-        if x != maxX-1 and y <= len(self.chunk.blocks[x+1][z])-1 and self.chunk.blocks[x+1][z][y] != None:
+        if x != 15 and y <= len(self.chunk.blocks[x+1][z])-1 and self.chunk.blocks[x+1][z][y] != None:
             self.chunk.blocks[x+1][z][y].toggleRightFace()
         if x != 0 and y <= len(self.chunk.blocks[x-1][z])-1 and self.chunk.blocks[x-1][z][y] != None:
             self.chunk.blocks[x-1][z][y].toggleLeftFace()
-        if z != maxZ-1 and y <= len(self.chunk.blocks[x][z+1])-1 and self.chunk.blocks[x][z+1][y] != None:
+        if z != 15 and y <= len(self.chunk.blocks[x][z+1])-1 and self.chunk.blocks[x][z+1][y] != None:
             self.chunk.blocks[x][z+1][y].toggleBackFace()
         if z != 0 and y <= len(self.chunk.blocks[x][z-1])-1 and self.chunk.blocks[x][z-1][y] != None:
             self.chunk.blocks[x][z-1][y].toggleFrontFace()
@@ -112,9 +109,9 @@ class Voxel:
     def place(self, pos):
         x, y, z = (None, None, None)
 
-        maxX, maxZ, maxY = len(self.chunk.blocks), len(self.chunk.blocks[x]), len(self.chunk.blocks[x][z])
+        maxY = len(self.chunk.blocks[x][z])
 
-        if x>maxX-1 and y>maxY-1 and z>maxZ-1 and self.chunk.blocks[x][z][y] == None:
+        if x>15 and y>maxY-1 and z>15 and self.chunk.blocks[x][z][y] == None:
             self.chunk.blocks[x][z].pop(y)
 
         if player.selected == 1:
@@ -123,22 +120,20 @@ class Voxel:
             self.chunk.blocks[x][z].insert(y, Dirt_block(pos, (x, z, y), self.chunk))
         elif player.selected == 3:
             self.chunk.blocks[x][z].insert(y, Stone_block(pos, (x, z, y), self.chunk))
-        elif player.selected == 4:
-            Bedrock_block(pos)
         
         self.chunk.blocks[x][z][y].toggleTopFace()
         
-        maxX, maxZ, maxY = len(self.chunk.blocks), len(self.chunk.blocks[x]), len(self.chunk.blocks[x][z])
+        maxY = len(self.chunk.blocks[x][z])
 
         if y != maxY-1 and self.chunk.blocks[x][z][y+1] != None:
             self.chunk.blocks[x][z][y+1].toggleBottomFace()
         if y != 0 and self.chunk.blocks[x][z][y-1]!= None:
             self.chunk.blocks[x][z][y-1].toggleTopFace()
-        if x != maxX-1 and y <= len(self.chunk.blocks[x+1][z])-1 and self.chunk.blocks[x+1][z][y] != None:
+        if x != 15 and y <= len(self.chunk.blocks[x+1][z])-1 and self.chunk.blocks[x+1][z][y] != None:
             self.chunk.blocks[x+1][z][y].toggleRightFace()
         if x != 0 and y <= len(self.chunk.blocks[x-1][z])-1 and self.chunk.blocks[x-1][z][y] != None:
             self.chunk.blocks[x-1][z][y].toggleLeftFace()
-        if z != maxZ-1 and y <= len(self.chunk.blocks[x][z+1])-1 and self.chunk.blocks[x][z+1][y] != None:
+        if z != 15 and y <= len(self.chunk.blocks[x][z+1])-1 and self.chunk.blocks[x][z+1][y] != None:
             self.chunk.blocks[x][z+1][y].toggleBackFace()
         if z != 0 and y <= len(self.chunk.blocks[x][z-1])-1 and self.chunk.blocks[x][z-1][y] != None:
             self.chunk.blocks[x][z-1][y].toggleFrontFace()
