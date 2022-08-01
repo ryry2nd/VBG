@@ -1,1 +1,2 @@
-# My-Minecraft-Clone
+# VBG - Voxel Based Game
+aka My Minecraft Clone
