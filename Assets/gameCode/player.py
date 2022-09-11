@@ -1,5 +1,6 @@
 from Assets.gameCode.vars import *
 from Assets.gameCode.objects.gameSky import *
+from Assets.gameCode.objects.blocks import *
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 
@@ -10,6 +11,7 @@ player.jump_height = 1.5
 player.selected = 1
 player.startPos = Vec3(0, 0, 0)
 player.height = 2
+player.hotBar = [Grass_block, Dirt_block, Stone_block]
 
 def input(key):
     if key == 'escape':

@@ -1,10 +1,8 @@
 from Assets.gameCode.vars import *
-from Assets.gameCode.objects.blocks import *
-from Assets.gameCode.player import *
 from ursina import *
 
 class Voxel:
-    def __init__(self, position:tuple, texture:tuple, truePos:tuple, chunk, collider='box'):
+    def __init__(self, position:tuple, texture:tuple, truePos:tuple, chunk, player, collider='box'):
         self.position = position
         self.texture = texture
 
@@ -18,6 +16,7 @@ class Voxel:
         self.chunk = chunk
         self.truePos = truePos
         self.collider = collider
+        self.player = player
 
     def toggleTopFace(self):
         x, y, z = self.position
@@ -116,12 +115,7 @@ class Voxel:
         if x>15 and y>maxY-1 and z>15 and self.chunk.blocks[x][z][y] == None:
             self.chunk.blocks[x][z].pop(y)
 
-        if player.selected == 1:
-            self.chunk.blocks[x][z].insert(y, Grass_block(pos, (x, z, y), self.chunk))
-        elif player.selected == 2:
-            self.chunk.blocks[x][z].insert(y, Dirt_block(pos, (x, z, y), self.chunk))
-        elif player.selected == 3:
-            self.chunk.blocks[x][z].insert(y, Stone_block(pos, (x, z, y), self.chunk))
+        self.chunk.blocks[x][z].insert(y, self.player.hotBar[self.player.selected-1](pos, (x, z, y), self.chunk))
         
         self.chunk.blocks[x][z][y].toggleTopFace()
         

@@ -5,7 +5,7 @@ from Assets.gameCode.objects.blocks import *
 import random
 
 class Terrain:
-    def __init__(self, terrainSize, terrainHeight=64, seed=random.randint(0, 1000000000000000000000000000), amp=[6, 24], freq=[48, 96], octaves=4, offset=[0, 0], scale=1, chunkThreads=1):
+    def __init__(self, terrainSize, player, terrainHeight=64, seed=random.randint(0, 1000000000000000000000000000), amp=[6, 24], freq=[48, 96], octaves=4, offset=[0, 0], scale=1, chunkThreads=1):
         self.chunks = []
         self.tLength, self.tWidth = terrainSize
         self.tHeight = terrainHeight
@@ -17,13 +17,14 @@ class Terrain:
         self.octaves = octaves
         self.noise = PerlinNoise(octaves=octaves, seed=seed)
         self.chunkThreads = chunkThreads
+        self.player = player
         self.generateTerrain()
         self.optimize()
 
     def loadChunkThread(self, q:Queue):
         while not q.empty():
             trueX, trueY, x, z = q.get()
-            self.chunks[trueX][trueY] = Chunk((x*16-(self.tLength*16)//2, z*16-(self.tLength*16)//2), (trueX, trueY), self.tHeight, self.noise, self.freq, self.amp, self.scale, self.offset, self)
+            self.chunks[trueX][trueY] = Chunk((x*16-(self.tLength*16)//2, z*16-(self.tLength*16)//2), (trueX, trueY), self.tHeight, self.noise, self.freq, self.amp, self.scale, self.offset, self, self.player)
             q.task_done()
 
     def generateTerrain(self):
@@ -72,7 +73,7 @@ class Terrain:
                                 self.chunks[cx][cz].blocks[x][-1][y].toggleFrontFace()
 
 class Chunk:
-    def __init__(self, position, truePos, height, noise, freq, amp, scale, offset, terrain: Terrain):
+    def __init__(self, position, truePos, height, noise, freq, amp, scale, offset, terrain: Terrain, player):
         self.blocks = []
         self.position = position
         self.truePos = truePos
@@ -83,6 +84,7 @@ class Chunk:
         self.noise = noise
         self.freq = freq
         self.amp = amp
+        self.player = player
         self.generate_chunk()
         self.optimize()
     
@@ -108,7 +110,7 @@ class Chunk:
             if maxY > 128:
                 maxY = 128
 
-            zAxises[-1].append(Bedrock_block((x, 0, z), None, self))
+            zAxises[-1].append(Bedrock_block((x, 0, z), None, self.player, self))
             zAxises[-1][-1].truePos = (trueXPos, len(zAxises)-1, len(zAxises[-1])-1)
 
             for y in range(maxY):
@@ -116,13 +118,13 @@ class Chunk:
                 if ry == maxY-1:
                     pass
                 elif ry > 2:
-                    zAxises[-1].append(Stone_block((x, y, z), None, self))
+                    zAxises[-1].append(Stone_block((x, y, z), self.player, None, self))
                     zAxises[-1][-1].truePos = (trueXPos, len(zAxises)-1, len(zAxises[-1])-1)
                 elif ry > 0:
-                    zAxises[-1].append(Dirt_block((x, y, z), None, self))
+                    zAxises[-1].append(Dirt_block((x, y, z), self.player, None, self))
                     zAxises[-1][-1].truePos = (trueXPos, len(zAxises)-1, len(zAxises[-1])-1)
                 else:
-                    zAxises[-1].append(Grass_block((x, y, z), None, self))
+                    zAxises[-1].append(Grass_block((x, y, z), self.player, None, self))
                     zAxises[-1][-1].truePos = (trueXPos, len(zAxises)-1, len(zAxises[-1])-1)
 
         return zAxises
